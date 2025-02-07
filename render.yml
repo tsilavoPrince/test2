@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: test_voalohany
+    env: php
+    buildCommand: 'composer install --no-dev --optimize-autoloader'
+    startCommand: 'php artisan serve --host 0.0.0.0 --port 10000'
+    envVars:
+      - key: APP_KEY
+        value: 'base64:2dx4xrONv1qafa8+1+WE36ntZX+flWc9tdAqjfMVYZg='
