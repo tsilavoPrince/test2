@@ -25,5 +25,10 @@ RUN composer install --optimize-autoloader --no-dev
 # Expose le port 8000
 EXPOSE 8000
 
+RUN php artisan config:clear && php artisan cache:clear
+
 # Commande pour exécuter les migrations et démarrer l’application
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
+CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+
+
+
