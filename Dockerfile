@@ -1,31 +1,22 @@
-# Utiliser l'image officielle PHP avec Nginx
-FROM php:8.1-fpm
+FROM php:8.0-fpm
 
-# Installer les dépendances système nécessaires
-RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev zip git unzip
+# Installer les dépendances nécessaires
+RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev libzip-dev git unzip && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd zip pdo pdo_mysql
 
-# Installer Composer (gestionnaire de dépendances PHP)
+# Installer Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Installer les extensions PHP nécessaires
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install gd pdo pdo_mysql
+# Copier les fichiers du projet dans l'image
+COPY . /var/www
 
-# Configurer le répertoire de travail
+# Définir les permissions
+RUN chown -R www-data:www-data /var/www
+
+# Installer les dépendances via Composer
 WORKDIR /var/www
+RUN composer install --optimize-autoloader --no-dev --no-scripts
 
-# Copier le fichier composer.json et installer les dépendances de Laravel
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader
-
-# Copier le reste des fichiers du projet
-COPY . .
-
-# Configurer Nginx (optionnel, si tu veux utiliser Nginx pour servir l'application)
-COPY nginx/default.conf /etc/nginx/conf.d/
-
-# Exposer le port 80
-EXPOSE 80
-
-# Commande pour démarrer le serveur Nginx et PHP-FPM
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=3000"]
+# Configurer le serveur pour servir Laravel
+CMD ["php", "-S", "0.0.0.0:3000", "-t", "public"]
