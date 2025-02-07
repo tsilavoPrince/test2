@@ -25,7 +25,7 @@ RUN composer install --optimize-autoloader --no-dev
 # Expose le port 8000
 EXPOSE 8000
 
-RUN php artisan config:clear && php artisan cache:clear php artisan config:clear && php artisan route:clear && php artisan view:clear
+RUN php artisan config:clear && php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear
 
 
 # Commande pour exécuter les migrations et démarrer l’application
