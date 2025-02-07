@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: your-app-name
+    name: test
     env: docker
     docker:
       dockerfilePath: Dockerfile
     envVars:
       - key: APP_KEY
-        value: 'base64:your-app-key-here'
+        value: 'base64:2dx4xrONv1qafa8+1+WE36ntZX+flWc9tdAqjfMVYZg='
