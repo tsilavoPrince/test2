@@ -1,28 +1,30 @@
-# Utiliser l'image PHP avec Apache
-FROM php:8.1-apache
+# Dockerfile
 
-# Installer les dépendances nécessaires pour Laravel
-RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev zip git && \
-    docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install gd pdo pdo_mysql
+# Utilisation de l'image PHP officielle avec extensions nécessaires
+FROM php:8.1-fpm
 
-# Installer Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# Installe les dépendances système et PHP
+RUN apt-get update && apt-get install -y \
+    curl zip unzip git libpq-dev libzip-dev libpng-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
+
+# Installe Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Copier tous les fichiers du projet dans le conteneur Docker
+# Copie les fichiers de l’application
 COPY . .
 
-# Créer les répertoires nécessaires si ils n'existent pas
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
+# Installe les dépendances PHP avec Composer
+RUN composer install --optimize-autoloader --no-dev
 
-# Donner les bonnes permissions à Apache (www-data)
+# Donne les bonnes permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Exposer le port 80
-EXPOSE 80
+# Expose le port 8000
+EXPOSE 8000
 
-# Lancer Apache en arrière-plan
-CMD ["apache2-foreground"]
+# Commande pour démarrer l’application et exécuter les migrations
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
