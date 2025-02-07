@@ -1,30 +1,29 @@
-# Dockerfile
-
-# Utilisation de l'image PHP officielle avec extensions nécessaires
+# Utilisation de l'image PHP officielle avec les extensions nécessaires
 FROM php:8.1-fpm
 
-# Installe les dépendances système et PHP
+# Installation des dépendances système et PHP
 RUN apt-get update && apt-get install -y \
     curl zip unzip git libpq-dev libzip-dev libpng-dev \
     && docker-php-ext-install pdo pdo_mysql zip
 
-# Installe Composer
+# Installation de Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Définir le répertoire de travail
 WORKDIR /var/www/html
 
-# Copie les fichiers de l’application
+# Copier les fichiers de l’application
 COPY . .
 
-# Installe les dépendances PHP avec Composer
-RUN composer install --optimize-autoloader --no-dev
+# Définir les bonnes permissions pour les répertoires nécessaires
+RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html
 
-# Donne les bonnes permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Installation des dépendances Laravel
+RUN composer install --optimize-autoloader --no-dev
 
 # Expose le port 8000
 EXPOSE 8000
 
-# Commande pour démarrer l’application et exécuter les migrations
+# Commande pour exécuter les migrations et démarrer l’application
 CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000
