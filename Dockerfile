@@ -17,7 +17,7 @@ COPY . .
 
 # Définir les bonnes permissions pour les répertoires nécessaires
 RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
-    chown -R www-data:www-data /var/www/html
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Installation des dépendances Laravel
 RUN composer install --optimize-autoloader --no-dev
@@ -25,10 +25,11 @@ RUN composer install --optimize-autoloader --no-dev
 # Expose le port 8000
 EXPOSE 8000
 
-RUN php artisan config:clear && php artisan cache:clear
+RUN php artisan config:clear && php artisan cache:clear php artisan config:clear && php artisan route:clear && php artisan view:clear
+
 
 # Commande pour exécuter les migrations et démarrer l’application
-CMD php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
 
 
 
