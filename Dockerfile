@@ -1,23 +1,31 @@
-# Utiliser une image PHP de base
+# Utiliser l'image officielle PHP avec Nginx
 FROM php:8.1-fpm
 
-# Installer les extensions PHP nécessaires pour Laravel
-RUN docker-php-ext-install pdo pdo_mysql
+# Installer les dépendances système nécessaires
+RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev zip git unzip
 
-# Installer Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Installer Composer (gestionnaire de dépendances PHP)
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Copier les fichiers de l'application dans le conteneur
-COPY . /var/www
+# Installer les extensions PHP nécessaires
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+RUN docker-php-ext-install gd pdo pdo_mysql
 
-# Définir le répertoire de travail
+# Configurer le répertoire de travail
 WORKDIR /var/www
 
-# Installer les dépendances de Composer
-RUN composer install --no-dev --optimize-autoloader --prefer-dist
+# Copier le fichier composer.json et installer les dépendances de Laravel
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader
 
-# Exposer le port
-EXPOSE 9000
+# Copier le reste des fichiers du projet
+COPY . .
 
-# Commande pour démarrer PHP-FPM
-CMD ["php-fpm"]
+# Configurer Nginx (optionnel, si tu veux utiliser Nginx pour servir l'application)
+COPY nginx/default.conf /etc/nginx/conf.d/
+
+# Exposer le port 80
+EXPOSE 80
+
+# Commande pour démarrer le serveur Nginx et PHP-FPM
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=3000"]
